@@ -1,0 +1,122 @@
+import tkinter as tk
+import datetime
+import random
+
+# Define the seasonal data for each country
+seasonal_data = {
+    'France': {
+        'January': ['Apples', 'Pears', 'Carrots', 'Cabbage', 'Leeks'],
+        'February': ['Apples', 'Pears', 'Carrots', 'Cabbage', 'Leeks'],
+        'March': ['Apples', 'Pears', 'Carrots', 'Cabbage', 'Leeks'],
+        'April': ['Strawberries', 'Asparagus', 'Radishes', 'Spinach', 'Leeks'],
+        'May': ['Strawberries', 'Asparagus', 'Radishes', 'Spinach', 'Cherries'],
+        'June': ['Cherries', 'Strawberries', 'Peas', 'Spinach', 'Tomatoes'],
+        'July': ['Cherries', 'Strawberries', 'Peas', 'Tomatoes', 'Zucchini'],
+        'August': ['Peaches', 'Tomatoes', 'Zucchini', 'Peppers', 'Eggplants'],
+        'September': ['Peaches', 'Tomatoes', 'Grapes', 'Peppers', 'Eggplants'],
+        'October': ['Grapes', 'Pears', 'Apples', 'Pumpkins', 'Cabbage'],
+        'November': ['Pears', 'Apples', 'Pumpkins', 'Cabbage', 'Leeks'],
+        'December': ['Pears', 'Apples', 'Carrots', 'Cabbage', 'Leeks'],
+    },
+    'Germany': {
+        'January': ['Apples', 'Pears', 'Cabbage', 'Carrots', 'Leeks'],
+        'February': ['Apples', 'Pears', 'Cabbage', 'Carrots', 'Leeks'],
+        'March': ['Apples', 'Pears', 'Cabbage', 'Carrots', 'Leeks'],
+        'April': ['Asparagus', 'Radishes', 'Spinach', 'Leeks', 'Strawberries'],
+        'May': ['Asparagus', 'Radishes', 'Spinach', 'Strawberries', 'Cherries'],
+        'June': ['Cherries', 'Strawberries', 'Peas', 'Tomatoes', 'Spinach'],
+        'July': ['Cherries', 'Strawberries', 'Peas', 'Tomatoes', 'Zucchini'],
+        'August': ['Peaches', 'Tomatoes', 'Zucchini', 'Peppers', 'Eggplants'],
+        'September': ['Peaches', 'Tomatoes', 'Grapes', 'Peppers', 'Eggplants'],
+        'October': ['Grapes', 'Pears', 'Apples', 'Pumpkins', 'Cabbage'],
+        'November': ['Pears', 'Apples', 'Pumpkins', 'Cabbage', 'Leeks'],
+        'December': ['Pears', 'Apples', 'Cabbage', 'Carrots', 'Leeks'],
+    },
+    'Italy': {
+        'January': ['Oranges', 'Lemons', 'Kiwi', 'Carrots', 'Fennel'],
+        'February': ['Oranges', 'Lemons', 'Kiwi', 'Carrots', 'Fennel'],
+        'March': ['Oranges', 'Lemons', 'Kiwi', 'Asparagus', 'Spinach'],
+        'April': ['Strawberries', 'Asparagus', 'Radishes', 'Spinach', 'Lettuce'],
+        'May': ['Strawberries', 'Asparagus', 'Radishes', 'Lettuce', 'Cherries'],
+        'June': ['Cherries', 'Strawberries', 'Peas', 'Tomatoes', 'Spinach'],
+        'July': ['Cherries', 'Strawberries', 'Peas', 'Tomatoes', 'Zucchini'],
+        'August': ['Peaches', 'Tomatoes', 'Zucchini', 'Peppers', 'Eggplants'],
+        'September': ['Peaches', 'Tomatoes', 'Grapes', 'Peppers', 'Eggplants'],
+        'October': ['Grapes', 'Pears', 'Apples', 'Pumpkins', 'Cabbage'],
+        'November': ['Pears', 'Apples', 'Pumpkins', 'Cabbage', 'Fennel'],
+        'December': ['Oranges', 'Lemons', 'Kiwi', 'Cabbage', 'Fennel'],
+    }
+}
+
+class SeasonalProduceApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Seasonal Produce Finder")
+        self.geometry("400x400")
+        self.create_widgets()
+        
+    def create_widgets(self):
+        self.label = tk.Label(self, text="Where are you?")
+        self.label.pack(pady=10)
+        
+        self.country_entry = tk.Entry(self)
+        self.country_entry.pack(pady=5)
+        
+        self.label_month = tk.Label(self, text="Enter a month (e.g., January, February):")
+        self.label_month.pack(pady=10)
+        
+        self.month_entry = tk.Entry(self)
+        self.month_entry.pack(pady=5)
+        
+        self.submit_button = tk.Button(self, text="Submit", command=self.display_seasonal_produce)
+        self.submit_button.pack(pady=20)
+        
+        self.result_label = tk.Label(self, text="", wraplength=350)
+        self.result_label.pack(pady=10)
+        
+        self.canvas = tk.Canvas(self, width=400, height=200)
+        self.canvas.pack()
+
+    def display_seasonal_produce(self):
+        country = self.country_entry.get().strip()
+        month = self.month_entry.get().strip()
+        
+        # Validate month input
+        try:
+            month_date = datetime.datetime.strptime(month, '%B')
+        except ValueError:
+            self.result_label.config(text="Invalid month. Please enter the full name of the month (e.g., January).")
+            return
+        
+        seasonal_produce = self.get_seasonal_produce(country, month_date)
+        if isinstance(seasonal_produce, list):
+            result_text = f"In {country} during {month}, the following fruits and vegetables are in season:\n" + "\n".join(seasonal_produce)
+        else:
+            result_text = seasonal_produce
+        
+        self.result_label.config(text=result_text)
+        self.animate_text(seasonal_produce)
+
+    def get_seasonal_produce(self, country, month):
+        month_name = month.strftime('%B')
+        produce = seasonal_data.get(country, {}).get(month_name, [])
+        if not produce:
+            return f"No seasonal data available for {country} in {month_name}."
+        return produce
+
+    def animate_text(self, produce):
+        self.canvas.delete("all")
+        x, y = 10, 10
+        for item in produce:
+            text = self.canvas.create_text(x, y, text=item, anchor='nw')
+            self.animate_item(text, x, y)
+            y += 30
+    
+    def animate_item(self, item, x, y):
+        for _ in range(30):
+            self.after(50, self.canvas.move(item, random.randint(-1, 1), random.randint(-1, 1)))
+            self.update()
+
+if __name__ == "__main__":
+    app = SeasonalProduceApp()
+    app.mainloop()
